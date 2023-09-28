@@ -1,4 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { fetchContacts, addContact, deleteContact } from './operations';
+
+const handleRejected = (state, action) => {
+  state.isLoading = false;
+  state.error = action.payload;
+};
+
+const handleLoading = state => {
+  state.isLoading = true;
+};
 
 const contactsInitialState = {
   items: [],
@@ -6,75 +16,36 @@ const contactsInitialState = {
   error: null,
 };
 
-const { items, isLoading, error } = state;
-
-const fetchLoading = () => {
-  isLoading = true;
-};
-
-const fetchError = actionPayload => {
-  error = actionPayload;
-};
-
-const fetchNoError = () => {
-  error = null;
-};
-
-const fetchNoLoading = () => {
-  isLoading = false;
-};
-
 const contactsSlice = createSlice({
-  name: 'contacts',
+  name: 'contact',
   initialState: contactsInitialState,
-  redcers: {
-    fetchingInProgress() {
-      fetchLoading;
+  extraReducers: {
+    [fetchContacts.pending]: handleLoading,
+    [fetchContacts.fulfilled](state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.items = action.payload;
     },
-    fetchingSucces(action) {
-      fetchNoLoading;
-      fetchNoError;
-      items = action.payload;
+    [fetchContacts.rejected]: handleRejected,
+    [addContact.pending]: handleLoading,
+    [addContact.fulfilled](state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.items.push(action.payload);
     },
-    fetchingError(action) {
-      fetchNoLoading;
-      fetchError(action.payload);
+    [addContact.rejected]: handleRejected,
+    [deleteContact.pending]: handleLoading,
+    [deleteContact.fulfilled]: (state, action) => {
+      state.isLoading = false;
+      state.error = null;
+      const index = state.items.findIndex(
+        contact => contact.id === action.payload.id
+      );
+
+      state.items.splice(index, 1);
     },
-    addingInProgress() {
-      fetchLoading;
-    },
-    addingSucces(action) {
-      fetchNoLoading;
-      fetchNoError;
-      items = [...items, action.payload];
-    },
-    addingError(action) {
-      fetchError(action.payload);
-    },
-    deleteInProgress() {
-      fetchLoading;
-    },
-    deleteSucces(action) {
-      fetchNoLoading;
-      fetchNoError;
-      items = items.filter(contact => contact.id !== action.payload);
-    },
-    deleteError(action) {
-      fetchError(action.payload);
-    },
+    [deleteContact.rejected]: handleRejected,
   },
 });
-
-export const {
-  fetchingInProgress,
-  fetchingSucces,
-  fetchingError,
-  addingInProgress,
-  addingSucces,
-  addingError,
-  deleteInProgress,
-  deleteSucces,
-  deleteError,
-} = contactsSlice.actions;
 
 export const contactsReducer = contactsSlice.reducer;
