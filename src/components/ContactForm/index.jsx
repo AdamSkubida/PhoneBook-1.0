@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { addContact } from 'Redux/operations';
 import css from './ContactForm.module.css';
@@ -21,16 +21,26 @@ export const ContactForm = () => {
     }));
   };
 
-  const handleSubmit = e => {
-    e.preventDefault();
-    dispatch(addContact({ name: contact.name, number: contact.number }));
+  useEffect(() => {
+    const handleSubmit = e => {
+      e.preventDefault();
+      dispatch(addContact({ name: contact.name, number: contact.number }));
 
-    setContact(() => ({ ...INITIAL_STATE }));
-  };
+      setContact(() => ({ ...INITIAL_STATE }));
+    };
+
+    document.querySelector('form').addEventListener('submit', handleSubmit);
+
+    return () => {
+      document
+        .querySelector('form')
+        .removeEventListener('submit', handleSubmit);
+    };
+  }, [contact, dispatch]);
 
   return (
     <div className={css['form-wrapper']}>
-      <form onSubmit={handleSubmit}>
+      <form>
         <div className={css[`label-input`]}>
           <label className={css.label} htmlFor="name">
             Name
